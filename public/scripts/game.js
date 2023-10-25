@@ -37,14 +37,21 @@ class Game {
     this.ctx.lineTo(this.canvas.width, this.floorY);
     this.ctx.stroke();
 
-    // Start game loop
-    this.update();
-
     // Handle keyboard input for movement and jumping
     this.keysPressed = {};
     this.keyState = {};
     document.addEventListener("keydown", (e) => this.handleKeyDown(e));
     document.addEventListener("keyup", (e) => this.handleKeyUp(e));
+
+    // Afterimage parameters
+    this.afterimages = [];
+    this.afterimageOpacity = 0.5; // Customize opacity (0 to 1)
+    this.afterimageSize = 40; // Customize afterimage size
+    this.afterimageFrequency = 1; // Customize frequency (lower is more frequent)
+    this.afterimageCounter = 0; // Initialize afterimage counter
+
+    // Start game loop
+    this.update();
   }
 
   redraw() {
@@ -61,6 +68,31 @@ class Game {
     for (const shape of this.shapes) {
       this.ctx.fillRect(shape.x, shape.y, shape.width, shape.height);
     }
+  }
+
+  createAfterimage() {
+    const mainCharacter = this.shapes[0];
+    const afterimage = {
+      x: mainCharacter.x,
+      y: mainCharacter.y + 20,
+      size: this.afterimageSize,
+      opacity: this.afterimageOpacity,
+    };
+    this.afterimages.push(afterimage);
+    console.log(this.afterimages);
+  }
+
+  updateAfterimages() {
+    this.afterimages.forEach((afterimage) => {
+      // Increase the size and reduce opacity
+      afterimage.size += 1;
+      afterimage.opacity -= 0.01;
+
+      if (afterimage.opacity <= 0) {
+        // Remove afterimages that have faded out
+        this.afterimages.splice(this.afterimages.indexOf(afterimage), 1);
+      }
+    });
   }
 
   handleKeyDown(e) {
@@ -130,12 +162,25 @@ class Game {
     // Decrement the dash timer
     if (this.isDashing) {
       this.dashTimer -= 1 / 60; // Assuming 60 frames per second
-      if (this.dashTimer <= 0) {
+      if (this.dashTimer <= 0 || !this.keyState["ArrowUp"]) {
         this.isDashing = false;
         this.characterVelocityX =
-          this.characterSpeed * (this.keyState["ArrowRight"] ? 1 : -1);
+          this.characterSpeed *
+          (this.keyState["ArrowRight"]
+            ? 1
+            : this.keyState["ArrowLeft"]
+            ? -1
+            : 0);
+      }
+      this.afterimageCounter++; // Increment the afterimage counter
+
+      if (this.afterimageCounter % this.afterimageFrequency === 0) {
+        this.createAfterimage();
       }
     }
+    // Update and render afterimages
+    this.updateAfterimages();
+    this.renderAfterimages();
 
     // Apply character velocity for movement
     this.shapes[0].x += this.characterVelocityX;
@@ -171,6 +216,21 @@ class Game {
 
     // Use requestAnimationFrame for smooth animations
     requestAnimationFrame(() => this.update());
+  }
+  renderAfterimages() {
+    this.ctx.globalAlpha = 1; // Reset globalAlpha
+
+    this.afterimages.forEach((afterimage) => {
+      this.ctx.globalAlpha = afterimage.opacity;
+      this.ctx.fillStyle = "black"; // Black squares
+      this.ctx.fillRect(
+        afterimage.x - afterimage.size / 2,
+        afterimage.y - afterimage.size / 2,
+        afterimage.size,
+        afterimage.size
+      );
+      this.ctx.globalAlpha = 1;
+    });
   }
 }
 
