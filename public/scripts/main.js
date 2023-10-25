@@ -20,6 +20,8 @@ class Main {
     linksAndButtons.forEach((element) => {
       element.addEventListener("mousedown", (event) => event.stopPropagation());
     });
+
+    this.setupGameButton();
   }
 
   initializeCounter() {
@@ -59,6 +61,15 @@ class Main {
     if (this.heldElement) {
       this.heldElement.style.display = "block";
       this.heldElement = null;
+    }
+  }
+  
+  setupGameButton() {
+    const gameButton = document.getElementById("gameButton");
+    if (gameButton) {
+      gameButton.addEventListener("click", () => {
+        window.location.href = "game.html"; // Redirect to game.html when the button is clicked
+      });
     }
   }
 }
