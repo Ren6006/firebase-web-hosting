@@ -1,10 +1,16 @@
 class PlayerCharacter {
-  constructor(canvas, floorY) {
+  constructor(canvas, floorY, rightKeyName, leftKeyName, jumpKeyName) {
+    this.rightKeyName = rightKeyName;
+    this.leftKeyName = leftKeyName;
+    this.jumpKeyName = jumpKeyName;
     this.canvas = canvas;
     this.floorY = floorY;
     this.shapes = [{ x: 50, y: 50, width: 50, height: 50, name: "Main" }];
 
     this.keyState = {};
+
+    this.coyoteLength = 5;
+    this.coyoteCount = this.coyoteLength;
 
     this.characterVelocityX = 0;
     this.characterVelocityY = 0;
@@ -12,11 +18,13 @@ class PlayerCharacter {
     this.characterJumpStrength = 7;
     this.isCharacterOnGround = false;
 
-    this.dashAvailable = true;
+    this.dashCount = 1;
+    this.dashUses = this.dashCount;
     this.dashDuration = 0.2;
     this.dashTimer = 0;
     this.isDashing = false;
     this.dashKey = "";
+    this.mostRecentKey = "";
 
     this.afterimages = [];
     this.afterimageOpacity = 0.5;
@@ -60,29 +68,32 @@ class PlayerCharacter {
       return;
     }
     this.keyState[e.key] = true;
+    this.mostRecentKey = e.key;
 
-    if (e.key === "ArrowRight" && !this.keyState["ArrowLeft"]) {
+    if (e.key === this.rightKeyName) {
       this.characterVelocityX = this.characterSpeed;
-    } else if (e.key === "ArrowLeft" && !this.keyState["ArrowRight"]) {
+    } else if (e.key === this.leftKeyName) {
       this.characterVelocityX = -this.characterSpeed;
     }
 
-    if (e.key === "ArrowUp") {
+    if (e.key === this.jumpKeyName) {
       if (this.isCharacterOnGround) {
         this.characterVelocityY = -this.characterJumpStrength;
         this.isCharacterOnGround = false;
       } else if (
-        (this.keyState["ArrowRight"] || this.keyState["ArrowLeft"]) &&
+        (this.keyState[this.rightKeyName] || this.keyState[this.leftKeyName]) &&
         !this.isDashing &&
-        this.dashAvailable &&
+        this.dashUses > 0 &&
         !this.isCharacterOnGround
       ) {
         this.isDashing = true;
         this.dashTimer = this.dashDuration;
-        this.dashAvailable = false;
+        this.dashUses--;
         this.characterVelocityX =
-          this.characterSpeed * (this.keyState["ArrowRight"] ? 10 : -10);
-        this.dashKey = this.keyState["ArrowRight"] ? "ArrowRight" : "ArrowLeft";
+          this.characterSpeed * (this.keyState[this.rightKeyName] ? 10 : -10);
+        this.dashKey = this.keyState[this.rightKeyName]
+          ? this.rightKeyName
+          : this.leftKeyName;
       }
     }
   }
@@ -91,9 +102,11 @@ class PlayerCharacter {
     this.keyState[e.key] = false;
 
     // Check for arrow key states and set velocity accordingly
-    if (this.keyState["ArrowRight"] && !this.keyState["ArrowLeft"]) {
+    if (this.keyState[this.rightKeyName] && this.keyState[this.leftKeyName]) {
+      return;
+    } else if (this.keyState[this.rightKeyName]) {
       this.characterVelocityX = this.characterSpeed;
-    } else if (this.keyState["ArrowLeft"] && !this.keyState["ArrowRight"]) {
+    } else if (this.keyState[this.leftKeyName]) {
       this.characterVelocityX = -this.characterSpeed;
     } else {
       this.characterVelocityX = 0;
@@ -107,7 +120,14 @@ class Main {
     this.ctx = this.canvas.getContext("2d");
     this.score = 0;
     this.floorY = this.canvas.height * (2 / 3);
-    this.player = new PlayerCharacter(this.canvas, this.floorY);
+    this.player = new PlayerCharacter(
+      this.canvas,
+      this.floorY,
+      "ArrowRight",
+      "ArrowLeft",
+      "ArrowUp"
+    );
+    // this.player = new PlayerCharacter(this.canvas, this.floorY, "d", "a", "w");
     this.shapes = [
       { x: 150, y: 150, width: 50, height: 50, name: "collectable" },
       { x: 250, y: 250, width: 50, height: 50, name: "collectable" },
@@ -142,18 +162,32 @@ class Main {
       this.player.dashTimer -= 1 / 60;
       if (
         this.player.dashTimer <= 0 ||
-        !this.player.keyState["ArrowUp"] ||
-        !this.player.keyState[this.player.dashKey]
+        !this.player.keyState[this.player.jumpKeyName] ||
+        !this.player.keyState[this.player.dashKey] ||
+        this.player.mostRecentKey != this.player.jumpKeyName
       ) {
         this.player.isDashing = false;
+        this.player.coyoteCount = 0;
         this.player.characterVelocityX =
           this.player.characterSpeed *
-          (this.player.keyState["ArrowRight"]
+          (this.player.keyState[this.player.rightKeyName]
             ? 1
-            : this.player.keyState["ArrowLeft"]
+            : this.player.keyState[this.player.leftKeyName]
             ? -1
             : 0);
+        if (this.player.mostRecentKey != this.player.jumpKeyName) {
+          this.player.characterVelocityX =
+            this.player.characterSpeed *
+            (this.player.mostRecentKey == this.player.rightKeyName ? 1 : -1);
+          this.player.characterVelocityY = -5;
+          this.player.dashUses++;
+          if (this.player.isCharacterOnGround) {
+            this.player.characterVelocityY = -10;
+          }
+          this.player.coyoteCount = this.player.coyoteLength;
+        }
       }
+
       this.player.afterimageCounter++;
 
       if (
@@ -161,6 +195,23 @@ class Main {
         0
       ) {
         this.player.createAfterimage();
+      }
+    }
+    if (this.player.coyoteCount < this.player.coyoteLength) {
+      this.player.coyoteCount++;
+      if (
+        this.player.mostRecentKey != this.player.jumpKeyName &&
+        this.player.mostRecentKey != this.player.dashKey
+      ) {
+        this.player.characterVelocityX =
+          this.player.characterSpeed *
+          (this.player.mostRecentKey == this.player.rightKeyName ? 1 : -1);
+        this.player.characterVelocityY = -5;
+        this.player.dashUses++;
+        this.player.coyoteCount = this.player.coyoteLength;
+        if (this.player.isCharacterOnGround) {
+          this.player.characterVelocityY = -10;
+        }
       }
     }
 
@@ -176,7 +227,9 @@ class Main {
       this.player.shapes[0].y = this.floorY - this.player.shapes[0].height;
       this.player.isCharacterOnGround = true;
       this.player.characterVelocityY = 0;
-      this.player.dashAvailable = true;
+      this.player.dashUses = this.player.dashCount;
+    } else {
+      this.player.isCharacterOnGround = false;
     }
 
     for (let i = 0; i < this.shapes.length; i++) {
