@@ -2,11 +2,7 @@ class PlayerCharacter {
   constructor(canvas, floorY) {
     this.canvas = canvas;
     this.floorY = floorY;
-    this.shapes = [
-      { x: 50, y: 50, width: 50, height: 50, name: "Main" },
-      { x: 150, y: 150, width: 50, height: 50, name: "collectable" },
-      { x: 250, y: 250, width: 50, height: 50, name: "collectable" },
-    ];
+    this.shapes = [{ x: 50, y: 50, width: 50, height: 50, name: "Main" }];
 
     this.keyState = {};
 
@@ -14,14 +10,13 @@ class PlayerCharacter {
     this.characterVelocityY = 0;
     this.characterSpeed = 3;
     this.characterJumpStrength = 7;
-    this.characterDoubleJump = false;
     this.isCharacterOnGround = false;
-    this.isCharacterJumping = false;
 
     this.dashAvailable = true;
     this.dashDuration = 0.2;
     this.dashTimer = 0;
     this.isDashing = false;
+    this.dashKey = "";
 
     this.afterimages = [];
     this.afterimageOpacity = 0.5;
@@ -61,6 +56,9 @@ class PlayerCharacter {
   }
 
   handleKeyDown(e) {
+    if (this.keyState[e.key] == true) {
+      return;
+    }
     this.keyState[e.key] = true;
 
     if (e.key === "ArrowRight" && !this.keyState["ArrowLeft"]) {
@@ -72,22 +70,19 @@ class PlayerCharacter {
     if (e.key === "ArrowUp") {
       if (this.isCharacterOnGround) {
         this.characterVelocityY = -this.characterJumpStrength;
-        this.isCharacterJumping = true;
         this.isCharacterOnGround = false;
-      } else if (this.characterDoubleJump) {
-        this.characterVelocityY = -this.characterJumpStrength;
-        this.characterDoubleJump = false;
       } else if (
         (this.keyState["ArrowRight"] || this.keyState["ArrowLeft"]) &&
         !this.isDashing &&
-        this.dashAvailable
+        this.dashAvailable &&
+        !this.isCharacterOnGround
       ) {
         this.isDashing = true;
         this.dashTimer = this.dashDuration;
         this.dashAvailable = false;
         this.characterVelocityX =
           this.characterSpeed * (this.keyState["ArrowRight"] ? 10 : -10);
-        this.isCharacterOnGround = false;
+        this.dashKey = this.keyState["ArrowRight"] ? "ArrowRight" : "ArrowLeft";
       }
     }
   }
@@ -113,6 +108,10 @@ class Main {
     this.score = 0;
     this.floorY = this.canvas.height * (2 / 3);
     this.player = new PlayerCharacter(this.canvas, this.floorY);
+    this.shapes = [
+      { x: 150, y: 150, width: 50, height: 50, name: "collectable" },
+      { x: 250, y: 250, width: 50, height: 50, name: "collectable" },
+    ];
 
     document.addEventListener("keydown", (e) => this.player.handleKeyDown(e));
     document.addEventListener("keyup", (e) => this.player.handleKeyUp(e));
@@ -130,6 +129,10 @@ class Main {
     for (const shape of this.player.shapes) {
       this.ctx.fillRect(shape.x, shape.y, shape.width, shape.height);
     }
+
+    for (const shape of this.shapes) {
+      this.ctx.fillRect(shape.x, shape.y, shape.width, shape.height);
+    }
   }
 
   update() {
@@ -137,7 +140,11 @@ class Main {
 
     if (this.player.isDashing) {
       this.player.dashTimer -= 1 / 60;
-      if (this.player.dashTimer <= 0 || !this.player.keyState["ArrowUp"]) {
+      if (
+        this.player.dashTimer <= 0 ||
+        !this.player.keyState["ArrowUp"] ||
+        !this.player.keyState[this.player.dashKey]
+      ) {
         this.player.isDashing = false;
         this.player.characterVelocityX =
           this.player.characterSpeed *
@@ -168,19 +175,17 @@ class Main {
     if (this.player.shapes[0].y + this.player.shapes[0].height >= this.floorY) {
       this.player.shapes[0].y = this.floorY - this.player.shapes[0].height;
       this.player.isCharacterOnGround = true;
-      this.player.characterDoubleJump = true;
       this.player.characterVelocityY = 0;
-      this.player.isCharacterJumping = false;
       this.player.dashAvailable = true;
     }
 
-    for (let i = 1; i < this.player.shapes.length; i++) {
-      if (this.checkCollision(this.player.shapes[0], this.player.shapes[i])) {
+    for (let i = 0; i < this.shapes.length; i++) {
+      if (this.checkCollision(this.player.shapes[0], this.shapes[i])) {
         console.log(
           "Collision detected between main character and collectible " + i
         );
         this.score++;
-        this.player.shapes.splice(i, 1);
+        this.shapes.splice(i, 1);
       }
     }
 
