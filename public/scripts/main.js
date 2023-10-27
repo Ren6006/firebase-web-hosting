@@ -22,6 +22,7 @@ class Main {
     });
 
     this.setupGameButton();
+    this.setupDatabaseGameButton();
   }
 
   initializeCounter() {
@@ -63,12 +64,21 @@ class Main {
       this.heldElement = null;
     }
   }
-  
+
   setupGameButton() {
     const gameButton = document.getElementById("gameButton");
     if (gameButton) {
       gameButton.addEventListener("click", () => {
         window.location.href = "game.html"; // Redirect to game.html when the button is clicked
+      });
+    }
+  }
+
+  setupDatabaseGameButton() {
+    const databaseGame = document.getElementById("databaseGame");
+    if (databaseGame) {
+      databaseGame.addEventListener("click", () => {
+        window.location.href = "database_game.html";
       });
     }
   }

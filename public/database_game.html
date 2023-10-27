@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Click the Box Game</title>
+    <style>
+      canvas {
+        border: 1px solid black;
+        display: block;
+        margin: 20px auto;
+      }
+      #scoreboard {
+        margin-top: 20px;
+        width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="gameCanvas" width="500" height="500"></canvas>
+    <p id="score">Score: 0</p>
+    <p id="timeRemaining">Time Remaining: 10s</p>
+    <button id="startButton">Start Game</button>
+    <button id="resetButton">Reset Game</button>
+    <div id="scoreboard">
+      <h3>Scoreboard:</h3>
+      <ul id="scoreList"></ul>
+    </div>
+    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore-compat.js"></script>
+    <!-- Your Firebase configuration here -->
+    <script src="scripts/database_game.js" defer></script>
+  </body>
+</html>
