@@ -1,0 +1,95 @@
+/* Reset some default styles and set a background image */
+body {
+  font-family: "Open Sans", sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f5f5f5;
+  /* Slightly darker grey */
+}
+
+/* Style the header with a slightly darker grey background and centered text in slightly darker red */
+header {
+  background-color: #f5f5f5;
+  color: #ff8080;
+  /* Slightly darker red */
+  text-align: center;
+  padding: 30px 0;
+}
+
+/* Style the title and subtitle in the header */
+header h1 {
+  font-family: "Roboto", sans-serif;
+  font-size: 36px;
+  margin: 0;
+}
+
+header p {
+  font-size: 18px;
+  margin: 10px 0;
+}
+
+/* Style the navigation menu with a slightly darker grey background */
+nav {
+  background-color: #f5f5f5;
+  text-align: center;
+  padding: 15px 0;
+}
+
+/* Style navigation links in slightly darker red */
+nav a {
+  text-decoration: none;
+  color: #ff8080;
+  font-size: 18px;
+  margin: 0 20px;
+}
+
+/* Add a hover effect to navigation links */
+nav a:hover {
+  text-decoration: underline;
+}
+
+/* Style sections with padding and a slightly transparent slightly darker grey background */
+section {
+  padding: 30px;
+  background-color: rgba(245, 245, 245, 0.8);
+  /* Slightly darker grey with transparency */
+  border: 1px solid #ff8080;
+  /* Slightly darker red */
+  margin: 20px 0;
+}
+
+/* Style section titles in slightly darker red */
+section h2 {
+  color: #ff8080;
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+/* Remove bullet points from lists */
+ul {
+  list-style: none;
+  /* Remove bullet points */
+  margin-left: 0;
+  padding-left: 0;
+  font-size: 18px;
+}
+
+/* Style footer with a slightly darker grey background and slightly darker red text */
+footer {
+  background-color: #f5f5f5;
+  color: #ff8080;
+  text-align: center;
+  padding: 15px 0;
+  font-size: 16px;
+}
+
+/* Change text color for email links */
+a[href^="mailto:"] {
+  color: #ff8080;
+  text-decoration: none;
+}
+
+/* Centered section content */
+.centered-section {
+  text-align: center;
+}

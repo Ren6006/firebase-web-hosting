@@ -23,6 +23,7 @@ class Main {
 
     this.setupGameButton();
     this.setupDatabaseGameButton();
+    this.setupVolleyballWebsiteButton();
   }
 
   initializeCounter() {
@@ -79,6 +80,15 @@ class Main {
     if (databaseGame) {
       databaseGame.addEventListener("click", () => {
         window.location.href = "database_game.html";
+      });
+    }
+  }
+
+  setupVolleyballWebsiteButton() {
+    const volleyballButton = document.getElementById("volleyball");
+    if (volleyballButton) {
+      volleyballButton.addEventListener("click", () => {
+        window.location.href = "volleyball.html";
       });
     }
   }
